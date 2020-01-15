@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>风险态势关联分析平台</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+	</head>
+	<link rel="stylesheet" type="text/css" href="css/reset.css"/>
+	<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css"/>
+	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+	<body>
+		<div class="gx-main" id="gx" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,1)">
+			<!-- head -->
+			<headtop></headtop>
+			<!-- main -->
+			<div class="main stat flex">
+				<div class="flex flex-around" style="height: 100%;padding:0 20px">
+					<!-- 左 -->
+					<div style="width: 29.5%;height: 100%;">
+						<div class="stat-bg">
+							<h2 class="stat-title">风险态势</h2>
+							<!-- 数字 -->
+							<div class="stat-num flex flex-around">
+								<div>
+									<p>{{check_num.scan}}</p>
+									<h6>扫描ip数</h6>
+								</div>
+								<div>
+									<p>{{check_num.check}}</p>
+									<h6>核查ip数</h6>
+								</div>
+								<div>
+									<p>{{check_num.com}}</p>
+									<h6>风险企业数</h6>
+								</div>
+								<div>
+									<p>{{check_num.penetration}}</p>
+									<h6>渗透数</h6>
+								</div>
+								<div>
+									<p>{{check_num.threat}}</p>
+									<h6>威胁数</h6>
+								</div>
+							</div>
+							<!-- 操作 -->
+							<div class="stat-control">
+								<!-- 单选 -->
+								<div class="stat-control-btns flex flex-between" style="width: 170px;">
+									<div class="stat-control-btn" :class="{'on':checkType=='threat'}" @click="check_type('threat')">威胁情况</div>
+									<div class="stat-control-btn" :class="{'on':checkType=='penetration'}" @click="check_type('penetration')">渗透情况</div>
+								</div>
+								<!-- 下拉 -->
+								<div style="text-align: center;">
+									<div style="display: inline-block;width: 100px;">
+										<el-select size="mini" v-model="checktype" placeholder="请选择">
+										    <el-option
+										      v-for="item in checktypeList"
+										      :key="item.id"
+										      :label="item.name"
+										      :value="item.id">
+										    </el-option>
+										  </el-select>
+									</div>
+									
+								</div>
+							</div>
+							<!-- 图 -->
+							<div class="statchart flex flex-two flex-column">
+								<!-- 威胁渗透 -->
+								<div class="flex">
+									<div style="width: 60%;" class="charts" id="time_list"></div>
+									<div style="width: 40%;" class="charts" id="com_list"></div>
+								</div>
+								<!-- 设备分布 -->
+								<div class="flex">
+									<div style="width: 60%;" class="charts" id="risk_list"></div>
+									<div style="width: 40%;" class="charts" id="sp_list"></div>
+								</div>
+								
+							</div>
+							<!-- 表格 -->
+							<div class="stat-table">
+								<h3 class="title_a"><i></i>威胁详情</h3>
+								<div class="flex flex-between" style="align-items: stretch;">
+									<!-- 统计 -->
+									<ul class="stat-number">
+										<li>
+											<p>{{threat_ip}}</p>
+											<h6>ip数</h6>
+										</li>
+										<li>
+											<p>{{threat_com}}</p>
+											<h6>企业数</h6>
+										</li>
+									</ul>
+									<!-- 表格 -->
+									<div class="table-box ">
+										<div class="scroll" style="height: calc(100% - 32px);">
+											<table class="yby_table portrait-table" >
+												<tr>
+													<th>IP</th>
+													<th>企业</th>
+													<th>威胁类型</th>
+													<th>核查时间</th>
+												</tr>
+												<tr v-if="check_table.length==0">
+													<td colspan="4"><h3><center>暂无数据</center></h3></td>
+												</tr>
+												<tr v-for="item in check_table" :key="item.id">
+													<td>{{item.ip}}</td>
+													<td>{{item.company}}</td>
+													<td>{{item.threat}}</td>
+													<td>{{item.time}}</td>
+												</tr>
+											</table>
+										</div>
+										
+										<!-- 分页 -->
+										<div style="text-align: right;">
+											<el-pagination
+												background
+											    layout="prev, pager, next"
+											    :pager-count="5"
+											    :page-count="checktotal"
+												:current-page="checkpage"
+												hide-on-single-page
+												@current-change="get_check_table">
+											  </el-pagination>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+					<!-- 中 -->
+					<div style="width: 40%;height: 100%;">
+						<div class="stat-bg">
+							<h2 class="stat-title">漏洞态势</h2>
+							<!-- 数字 -->
+							<div class="stat-num flex flex-around">
+								<div>
+									<p>{{leak_num.common}}</p>
+									<h6>通用漏洞数</h6>
+								</div>
+								<div>
+									<p>{{leak_num.leak}}</p>
+									<h6>通用补丁数</h6>
+								</div>
+								<div>
+									<p>{{leak_num.day}}</p>
+									<h6>0day漏洞数</h6>
+								</div>
+								<div>
+									<p>{{leak_num.mining}}</p>
+									<h6>挖掘漏洞数</h6>
+								</div>
+								<div>
+									<p>{{leak_num.poc}}</p>
+									<h6>poc脚本数</h6>
+								</div>
+							</div>
+							<!-- 操作 -->
+							<div class="stat-control">
+								<!-- 单选 -->
+								<div class="stat-control-btns flex flex-between" style="width: 370px;">
+									<div class="stat-control-btn" :class="{'on':leakType=='general'}" @click="leak_type('general')">通用</div>
+									<div class="stat-control-btn" :class="{'on':leakType=='day'}" @click="leak_type('day')">0day</div>
+									<div class="stat-control-btn" :class="{'on':leakType=='poc'}" @click="leak_type('poc')">poc</div>
+									<div class="stat-control-btn" :class="{'on':leakType=='mining'}" @click="leak_type('mining')">挖掘</div>
+								</div>
+								<!-- 下拉 -->
+								<div class="flex" style="justify-content: center;">
+									<span>威胁程度：</span>
+									<div style="display: inline-block;width: 100px;margin-right: 10px;">
+									<el-select size="mini" v-model="leaklevel" placeholder="请选择">
+									    <el-option
+									      v-for="item in leaklevelList"
+									      :key="item.id"
+									      :label="item.name"
+									      :value="item.id">
+									    </el-option>
+									  </el-select>
+									  </div>
+									  <span>厂商：</span>
+									  <div style="display: inline-block;width: 100px;">
+									  <el-select size="mini" v-model="leakvendor" placeholder="请选择">
+									      <el-option
+									        v-for="item in leakvendorList"
+									        :key="item.id"
+									        :label="item.name"
+									        :value="item.id">
+									      </el-option>
+									    </el-select>
+										</div>
+								</div>
+							</div>
+							<!-- 图 -->
+							<div class="statchart flex flex-two flex-column">
+								<!-- 威胁渗透 -->
+								<div class="flex">
+									<div style="width: 60%;" class="charts" id="vendor_list"></div>
+									<div style="width: 40%;" class="charts" id="leak_list"></div>
+								</div>
+								<!-- 设备分布 -->
+								<div class="flex">
+									<div class="charts" id="assert_list"></div>
+								</div>
+								
+							</div>
+							<!-- 表格 -->
+							<div class="stat-table">
+								<h3 class="title_a"><i></i>漏洞威胁情况</h3>
+								<div class="flex flex-between" style="align-items: stretch;">
+									<!-- 统计 -->
+									<ul class="stat-number">
+										<li>
+											<p>{{risk_assert}}</p>
+											<h6>资产数</h6>
+										</li>
+										<li>
+											<p>{{risk_com}}</p>
+											<h6>企业数</h6>
+										</li>
+									</ul>
+									<!-- 表格 -->
+									<div class="table-box ">
+										<div class="scroll" style="height: calc(100% - 32px);">
+											<table class="yby_table portrait-table" >
+												<tr>
+													<th>IP</th>
+													<th>企业</th>
+													<th>厂商</th>
+													<th>威胁等级</th>
+													<th>描述</th>
+													<th>核查时间</th>
+													<th>漏洞名</th>
+												</tr>
+												<tr v-if="leak_table.length==0">
+													<td colspan="7"><h3><center>暂无数据</center></h3></td>
+												</tr>
+												<tr v-for="item in leak_table" :key="item.id">
+													<td>{{item.ip}}</td>
+													<td>{{item.company}}</td>
+													<td>{{item.vendor}}</td>
+													<td>{{item.threatlevel}}</td>
+													<td>{{item.desc}}</td>
+													<td>{{item.time}}</td>
+													<td>{{item.loopholename}}</td>
+												</tr>
+											</table>
+										</div>
+										
+										<!-- 分页 -->
+										<div style="text-align: right;">
+											<el-pagination
+												background
+											    layout="prev, pager, next"
+												:pager-count="5"
+											    :page-count="leaktotal"
+											    :current-page="leakpage"
+												hide-on-single-page
+												@current-change="get_leak_table">
+											  </el-pagination>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+							
+						</div>
+					</div>
+					<!-- 右 -->
+					<div style="width: 28.5%;height: 100%;">
+						<div class="stat-bg">
+							<h2 class="stat-title">攻击态势</h2>
+							<!-- 数字 -->
+							<div class="flex flex-between">
+								<div class="stat-num flex flex-around" style="width: 49%;">
+									<div>
+										<p>{{honey_num.honey}}</p>
+										<h6>蜜罐数</h6>
+									</div>
+									<div>
+										<p>{{honey_num.attack_ip}}</p>
+										<h6>攻击ip数</h6>
+									</div>
+									<div>
+										<p>{{honey_num.poc}}</p>
+										<h6>攻击漏洞数</h6>
+									</div>
+								</div>
+								<div class="stat-num flex flex-around" style="width: 49%;">
+									<div>
+										<h6>组织<br>态势</h6>
+									</div>
+									<div>
+										<p>{{honey_num.group_true}}</p>
+										<h6>已分析组织数</h6>
+									</div>
+									<div>
+										<p>{{honey_num.group_false}}</p>
+										<h6>未分析组织数</h6>
+									</div>
+								</div>
+							</div>
+							<!-- 操作 -->
+							<div class="stat-control">
+								<!-- 下拉 -->
+								<div class="flex" style="justify-content: center;">
+									<span>组织：</span>
+									<div style="display: inline-block;width: 100px;">
+									<el-select size="mini" v-model="groupType" placeholder="请选择">
+									    <el-option
+									      v-for="item in groupTypeList"
+									      :key="item.id"
+									      :label="item.name"
+									      :value="item.id">
+									    </el-option>
+									  </el-select>
+									  </div>
+								</div>
+							</div>
+							<!-- 图 -->
+							<div class="statchart flex flex-two flex-column" style="height: calc(4.55rem + 33px);">
+								<!-- 漏洞补丁变化趋势 -->
+								<div class="flex">
+									<div class="charts" id="group_assert_list"></div>
+								</div>
+								<!-- 攻击方式 -->
+								<div class="flex flex-around">
+									<div :style="{width:$.isEmptyObject(group_desc)?'100%':'40%'}" class="charts" id="group_leak_list"></div>
+									<div v-if="!$.isEmptyObject(group_desc)" style="width: 60%;" >
+										<p>IP：{{group_desc.ip}}</p>
+										<p>企业：{{group_desc.company}}</p>
+										<p>风险port：{{group_desc.port}}</p>
+										<p>威胁组织：{{group_desc.gruop}}</p>
+									</div>
+								</div>
+								
+							</div>
+							<!-- 表格 -->
+							<div class="stat-table">
+								<h3 class="title_a"><i></i>组织威胁情况</h3>
+								<div class="flex flex-between" style="align-items: stretch;">
+									<!-- 统计 -->
+									<ul class="stat-number">
+										<li>
+											<p>{{group_ip}}</p>
+											<h6>ip数</h6>
+										</li>
+										<li>
+											<p>{{group_com}}</p>
+											<h6>企业数</h6>
+										</li>
+									</ul>
+									<!-- 表格 -->
+									<div class="table-box ">
+										<div class="scroll" style="height: calc(100% - 32px);">
+											<table class="yby_table portrait-table" >
+												<tr>
+													<th>IP</th>
+													<th>企业</th>
+													<th>风险port</th>
+													<th>威胁组织</th>
+												</tr>
+												<tr v-if="group_table.length==0">
+													<td colspan="4"><h3><center>暂无数据</center></h3></td>
+												</tr>
+												<tr v-for="item in group_table" :key="item.id">
+													<td>{{item.ip}}</td>
+													<td>{{item.company}}</td>
+													<td>{{item.port}}</td>
+													<td>{{item.group}}</td>
+												</tr>
+											</table>
+										</div>
+										
+										<!-- 分页 -->
+										<div style="text-align: right;">
+											<el-pagination
+												background
+												:pager-count="5"
+											    layout="prev, pager, next"
+												:page-count="grouptotal"
+												:current-page="grouppage"
+												hide-on-single-page
+												@current-change="get_group_table">
+											  </el-pagination>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+							
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</body>
+
+</html>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/stat-charts.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var gx = new Vue({
+		el:"#gx",
+		data:{
+			loading:true,
+			check_num:{
+				'scan': 10, 
+				'check': 10, 
+				'com': 10, 
+				'penetration': 10, 
+				'threat': 10, 
+			},
+			leak_num:{
+				'common':10, 
+				'leak': 10, 
+				'day': 10, 
+				'mining': 10, 
+				'poc': 10, 
+			},
+			honey_num:{
+				'honey':10,
+				'attack_ip':10,
+				'poc':10, 
+				'group_true':10, 
+				'group_false':10 
+			},
+			//核查
+			checkType:"threat",
+			checktype:"all",
+			checktypeList:[{id:"all",name:"全部"}],
+			threat_ip:"10",
+			threat_com:"10",
+			check_table:[],
+			checktotal:50,
+			checkpage:"1",
+			risk_list:{
+				"xdata": ["2019-05","2019-06","2019-07"],
+				"data": [
+					{name:"核查",data:[1000,800,1200]},
+					{name:"核查1",data:[1000,800,1200]},
+				],
+			},
+			time_list:{
+				"xdata": ["2019-05","2019-06","2019-07"],
+				"data": [
+					{name:"核查",data:[1000,800,1200]},
+					{name:"核查1",data:[1000,800,1200]},
+				],
+			},
+			com_list:[
+				{'name':"aaa", 'value':10},
+				{'name':"bbbb", 'value':10}
+			],
+			sp_list:[
+				{'name':"aaa", 'value':10},
+				{'name':"bbbb", 'value':10}
+			],
+			//漏洞
+			leakType:"general",
+			leaklevel:"all",
+			leaklevelList:[{id:"all",name:"全部"}],
+			leakvendor:"all",
+			leakvendorList:[{id:"all",name:"全部"}],
+			risk_assert:"10",
+			risk_com:"10",
+			leak_table:[],
+			leaktotal:50,
+			leakpage:"2",
+			vendor_list:{
+				"xdata": ["2019-05","2019-06","2019-07"],
+				"data": [
+					{name:"核查",data:[1000,800,1200]},
+					{name:"核查1",data:[1000,800,1200]},
+				],
+			},
+			assert_list:{
+				"xdata": ["2019-05","2019-06","2019-07"],
+				"data": [
+					{name:"核查",data:[1000,800,1200]},
+					{name:"核查1",data:[1000,800,1200]},
+				],
+			},
+			leak_list:[
+				{'name':"aaa", 'value':10},
+				{'name':"bbbb", 'value':10},
+				{'name':"cccc", 'value':10}
+			],
+			//攻击组织
+			groupType:"all",
+			groupTypeList:[{id:"all",name:"全部"}],
+			group_desc: {},
+			group_ip:"10",
+			group_com:"10",
+			group_table:[],
+			grouptotal:50,
+			grouppage:"1",
+			group_assert_list:{
+				"xdata": ["2019-05","2019-06","2019-07"],
+				"data": [
+					{name:"核查",data:[1000,800,1200]},
+					{name:"核查1",data:[1000,800,1200]},
+				],
+			},
+			group_leak_list:[
+				{'name':"aaa", 'value':10},
+				{'name':"bbbb", 'value':10}
+			],
+		},
+		watch:{
+			
+		},
+		created(){
+			var that = this
+			setTimeout(function() {
+				that.loading = false
+			}, 1000)
+			//统计数字
+			that.get_stat_num("check")
+			that.get_stat_num("leak")
+			that.get_stat_num("group")
+			//下拉预设值
+			that.check_select(that.checkType)
+			that.leak_select(that.leakType)
+			$.ajax({
+				type: "get",
+				url: urll + "/req/group_select",
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.groupTypeList = res.list
+						that.groupType = res.list[0].id
+					}
+				},
+				error: function() {}
+			})
+		},
+		mounted(){
+			var that = this
+			that.check_chart(that.checkType,that.checktype)
+			that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+			that.group_chart(that.groupType)
+		},
+		watch:{
+			checktype(val){
+				var that = this
+				that.check_chart(that.checkType,that.checktype)
+			},
+			leaklevel(val){
+				var that = this
+				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+			},
+			leakvendor(val){
+				var that = this
+				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+			},
+			groupType(val){
+				var that = this
+				that.group_chart(that.groupType)
+			}
+		},
+		methods:{
+			//统计数字
+			get_stat_num(type){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_num?type="+type,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that[type+"_num"] = res.data
+						}
+					},
+					error: function() {}
+				})
+			},
+			//核查选择
+			check_type(type){
+				var that = this
+				that.checkType = type
+				that.check_select(type)
+			},
+			//核查下拉
+			check_select(type){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/check_select?type="+type,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.checktypeList = res.list
+							that.checktype = res.list[0].id
+							that.$nextTick(function(){
+								that.check_chart(that.checkType,that.checktype)
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+			//核查图表
+			check_chart(type,value){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_static_check?type="+type+"&value="+value,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.risk_list = res.data.risk_list
+							that.time_list = res.data.time_list
+							that.com_list = res.data.com_list
+							that.sp_list = res.data.sp_list
+							that.threat_ip = res.data.threat_ip
+							that.threat_com = res.data.threat_com
+							that.$nextTick(function(){
+								//核查
+								create_line($("#time_list")[0],that.time_list,"威胁渗透",["#3eb072","#e69b0b"])
+								craete_pie($("#com_list")[0],that.com_list,"企业行业")
+								craete_bar_row($("#risk_list")[0],that.risk_list,"设备分布")
+								craete_pie($("#sp_list")[0],that.sp_list,"特殊行业分布")
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+			//漏洞选择
+			leak_type(type){
+				var that = this
+				that.leakType = type
+				that.leak_select(type)
+			},
+			//漏洞下拉
+			leak_select(type){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/leak_select?type="+type,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.leaklevelList = res.leaklevelList
+							that.leaklevel = res.leaklevelList[0].id
+							that.leakvendorList = res.leakvendorList
+							that.leakvendor = res.leakvendorList[0].id
+							that.$nextTick(function(){
+								that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+			//漏洞图表
+			leak_chart(type,vendor,level){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_static_leak?type="+type+"&vendor="+vendor+"&level="+level,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.vendor_list = res.data.vendor_list
+							that.assert_list = res.data.assert_list
+							that.leak_list = res.data.leak_list
+							that.risk_assert = res.data.risk_assert
+							that.risk_com = res.data.risk_com
+							that.$nextTick(function(){
+								//漏洞
+								craete_bar_row($("#vendor_list")[0],that.vendor_list,"设备数")
+								craete_pie($("#leak_list")[0],that.leak_list,"漏洞威胁程度")
+								create_line($("#assert_list")[0],that.assert_list,"漏洞补丁变化趋势",["#3eb072","#e69b0b"])
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+			//组织图表
+			group_chart(group){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_static_honey?group="+group,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.group_assert_list = res.data.group_assert_list
+							that.group_leak_list = res.data.group_leak_list
+							that.group_desc = res.data.group_desc
+							that.group_ip = res.data.group_ip
+							that.group_com = res.data.group_com
+							that.$nextTick(function(){
+								//攻击态势
+								create_line($("#group_assert_list")[0],that.group_assert_list,"攻击变化趋势",["#3eb072","#e69b0b"])
+								craete_pie($("#group_leak_list")[0],that.group_leak_list,"攻击方式")
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+			
+			
+			//风险表格
+			get_check_table(val){
+				console.log(val)
+			},
+			//漏洞表格
+			get_leak_table(val){
+				console.log(val)
+			},
+			//组织表格
+			get_group_table(val){
+				console.log(val)
+			},
+		}
+	})
+</script>

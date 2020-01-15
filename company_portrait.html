@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>标题</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+	</head>
+	<link rel="stylesheet" href="css/reset.css" />
+	<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<body>
+		<div class="gx-main" id="gx" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,.8)">
+			<!-- head -->
+			<headtop></headtop>
+			<!-- main -->
+			<div class="main portrait flex">
+				<!-- 左 -->
+				<div style="height: 100%;width: 50%;">
+					<!-- 企业信息 -->
+					<div class="por-bg" style="height: 50%;">
+						<div>
+							<h3>企业信息</h3>
+							<div class="por-con company flex flex-between">
+								<!-- info -->
+								<div class="scroll" style="width: 63%;height: 100%;">
+									<h3>企业名：{{risk_assert.info.name}}</h3>
+									<p>IP数：{{risk_assert.info.ip_num}}</p>
+									<p>法人：{{risk_assert.info.legal_person}}　行业：{{risk_assert.info.industry}}　注册资金：{{risk_assert.info.registered_capital}}</p>
+									<p>邮箱：{{risk_assert.info.email}}　组织代码：{{risk_assert.info.group_code}}</p>
+									<p>企业类型：{{risk_assert.info.com_type}}</p>
+									<p>公司地址：{{risk_assert.info.address}}</p>
+									<p style="text-align: justify;">公司简介：{{risk_assert.info.com_desc}}</p>
+								</div>
+								<!-- position -->
+								<div style="width:35%;height: 100%;">
+									<div class="charts" id="risk_view"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 资产预警 -->
+					<div class="por-bg" style="height: 50%;">
+						<div>
+							<h3>资产预警</h3>
+							<div class="por-con flex">
+								<!-- 预警图表 -->
+								<div style="height:100%;width: 50%;">
+									<div class="charts" id="port_switch"></div>
+								</div>
+								<!-- 预警表格 -->
+								<div style="height:100%;width: 50%;overflow-x: hidden;" class="scroll">
+									<table class="yby_table portrait-table">
+										<tr>
+											<th width="100">IP</th>
+											<th width="40px">端口</th>
+											<th>系统名称</th>
+											<th>风险类型</th>
+											<th>口令</th>
+										</tr>
+										<tr v-for="item in warn_assert.port_warn" :key="item.id">
+											<td>{{item.ip}}</td>
+											<td>{{item.port}}</td>
+											<td>{{item.system}}</td>
+											<td>{{item.warn}}</td>
+											<td>{{item.command}}</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 右 -->
+				<div style="height: 100%;width: 50%;">
+					<!-- 预警 -->
+					<div class="por-bg" style="height: 40%;">
+						<div class="flex flex-between">
+							<!-- 攻击概览 -->
+							<div style="width: 60%;height: 100%;">
+								<h3>攻击概览</h3>
+								<div class="por-con attack" style="position: relative;padding: 0;">
+									<div class="charts" id="map" style="height: 2.25rem;width: 80%;margin-left: auto;"></div>
+									<!-- group-contorl -->
+									<div class="portrait group-contorl" style="font-size: 13px;">
+										<p>攻击组织</p>
+										<hr>
+										<ul class="">
+											<li v-for="item in groups" :key="item.id">
+												<el-tooltip :disabled="(item.desc==''||!item.desc)" effect="dark" :content="item.desc" placement="top-start">
+													<el-radio v-model="group" :label="item.id">{{item.name}}</el-radio>
+												</el-tooltip>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<!-- 攻击频次 -->
+							<div style="width: 40%;height: 100%;">
+								<h3>攻击频次</h3>
+								<div class="por-con freq" style="padding: 0;">
+									<div class="charts" id="attack_freq"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 漏洞 -->
+					<div class="por-bg" style="height: 40%;">
+						<div>
+							<h3>漏洞预警</h3>
+							<div class="por-con flex flex-between">
+								<!-- 数字 -->
+								<div class="flex flex-column flex-between" style="width: 33%;height: 100%;">
+									<div class="loophole"><span>漏洞数</span><b>{{vuln_msg.com_vuln_num}}</b></div>
+									<div class="loophole"><span>0day漏洞数</span><b>{{vuln_msg.day_vuln_num}}</b></div>
+									<div class="loophole"><span>补丁数</span><b>{{vuln_msg.patch_num}}</b></div>
+								</div>
+								<!-- 漏洞 -->
+								<div style="width: 33%;height: 100%;">
+									<div class="charts" id="vuln_pie"></div>
+								</div>
+								<!-- 补丁 -->
+								<div style="width: 33%;height: 100%;">
+									<div class="charts" id="patch_pie"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 关联 -->
+					<div class="por-bg" style="height: 20%;">
+						<div>
+							<h3>关联</h3>
+							<div class="por-con flex flex-between">
+								<div class="ip-box" v-for="item in contact_ip" :key="item.id"><a :href="'assets_portrait.html?ip='+item">{{item}}</a></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=zA2PRmBKnRolQeyb1FmBn6FE6FhenqaH"></script>
+<script src="js/bmap.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/bmap_style.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/portrait_charts.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var app = new Vue({
+		el:"#gx",
+		data:{
+			loading:true,
+			group: "all",
+			risk_assert:{
+				position:[116.506604, 39.964724],
+				info:{
+					'name':'公司名称',
+					'address':'公司地址',
+					'legal_person':'法人',
+					'industry': '行业',
+					'com_type':'企业类型',
+					'电子邮箱': '123@qq.com',
+					'registered_capital': '注册资金',
+					'com_desc': '自公元1895年金陵人郭玉生南菁北迁、落户前门观音寺，到1983年老掌柜刘振英勇担重任、小胡同里艰难复业，再到现在毕国才继往开来、开辟发展新篇章，北京“稻香村”已在京城薪火相传悠悠百年。\n如今，改制为食品有限责任公司的“北京稻香村”，以稳健、迅猛的增长态势，领跑着中国传统食品业的健康发展。\n北京稻香村始终坚持“弘扬中华食品文化，把美食、健康和快乐带给所有人”的企业使命，在继承“前店后厂、自产自销”传统经营模式精髓基础上探索出“一体两翼、工商互动”的事业发展模式——以稻香村企业为主体，一手抓食品加工业，一手抓商业销售，二者互动，打造品牌。\n经过服务奥运历练的北京稻香村，将继续以“诚信为魂、质量为纲”的经营理念打造核心竞争力，逐步拓展全国市场，并致力于将蕴涵中国传统文化的经典食品推向世界，展示中华魅力！'
+				}
+			},
+			warn_assert: {
+				port_switch: {
+					xdata: ["2019-10", "2019-11", "2019-12"],
+					data: [{
+						name: "1080",
+						data: [1, 0, 1]
+					}, {
+						name: "80",
+						data: [0, 1, 0]
+					}]
+				},
+				port_warn: [{
+					ip:"192.168.122.122",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}, {
+					ip:"192.168.1.1",
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+					command:"",
+				}]
+			},
+			attack_freq: {
+				xdata: ["2019-10", "2019-11", "2019-12"],
+				data: [{
+					name: "1080",
+					data: [99, 10, 500]
+				}, {
+					name: "80",
+					data: [85, 100, 150]
+				}]
+			},
+			map: {},
+			groups:[],
+			vuln_msg:{
+				'com_vuln_num':0,
+				'day_vuln_num':0,
+				'patch_num':0,
+				'vuln':{
+					'xdata':['高','中','低'],
+					'data': [1,2,3]
+					},
+				'patch':{
+					'xdata':['已关联','未关联'],
+					'data': [1,2]
+					}
+			},
+			contact_ip:["123.123.456.789","123.123.456.789","123.123.456.789"]
+		},
+		watch: {
+			group() {
+				var that = this
+				that.points()
+			}
+		},
+		created(){
+			var that = this
+			//info
+			$.ajax({
+				type: "get",
+				url: urll + "/req/com_protrait_check?com_id=" + GetUrlParam("com_id"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.risk_assert = res.data.risk_assert
+						that.warn_assert = res.data.warn_assert
+						that.contact_ip = res.data.contact_ip
+						that.vuln_msg = res.data.vuln_msg
+						portrait($("#risk_view")[0], that.risk_assert.position)
+						port_chart($("#port_switch")[0], that.warn_assert.port_switch, "")
+						craete_pie($("#vuln_pie")[0],that.vuln_msg.vuln,"漏洞威胁情况")
+						craete_pie($("#patch_pie")[0],that.vuln_msg.patch,"关联补丁情况")
+					}
+				},
+				error: function() {}
+			})
+			//频率
+			$.ajax({
+				type: "get",
+				url: urll + "/req/ip_protrait_attack?com_id=" + GetUrlParam("com_id"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.attack_freq = res.data.attack_freq
+						create_line($("#attack_freq")[0], that.attack_freq, "")
+					}
+				},
+				error: function() {}
+			})
+			//轨迹
+			$.ajax({
+				type: "get",
+				url: urll + "/req/get_map_attack_track?com_id=" + GetUrlParam("com_id"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.map = res.data
+						that.groups = res.data.group
+						$.get('mapJson/china.json', function(Json) {
+							echarts.registerMap('china', Json);
+							create_map($("#map")[0], that.map, true, true, true)
+						});
+					}
+				},
+				error: function() {}
+			})
+		},
+		mounted(){
+			var that = this
+			setTimeout(function() {
+				that.loading = false
+			}, 1000);
+		},
+		methods:{
+			//地图
+			points() {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/get_map_attack_track?com_id=" + GetUrlParam("com_id") + "&group=" + that.group,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.map = res.data
+							that.$nextTick(function() {
+								create_map($("#map")[0], that.map, true, true, true)
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+		}
+	})
+</script>

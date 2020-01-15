@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>标题</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+	</head>
+	<link rel="stylesheet" href="css/reset.css" />
+	<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<body>
+		<div class="gx-main" id="gx" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,.8)">
+			<!-- head -->
+			<headtop></headtop>
+			<!-- main -->
+			<div class="main portrait">
+				<!-- part1 -->
+				<div class="flex" style="height: 35%;">
+					<!-- ip概览 -->
+					<div class="por-bg" style="height: 100%;width: 50%;">
+						<div>
+							<h3>ip概览</h3>
+							<div class="por-con ip flex flex-between">
+								<!-- info -->
+								<div class="scroll" style="width: 63%;">
+									<h3>ip：{{risk_assert.info.ip}}</h3>
+									<p>基站名：{{risk_assert.info.station}}　省份名：{{risk_assert.info.province}}　城市名：{{risk_assert.info.city}}</p>
+									<p v-if="risk_assert.info.service_port">服务端口：{{risk_assert.info.service_port}}</p>
+									<p v-if="risk_assert.info.finger" class="flex" style="align-items: flex-start;"><span>指纹详情：</span><b style="flex: 1 1 auto;"><i v-for="item in risk_assert.info.finger" :key="item.id">{{item}}</i></b></p>
+									<p v-if="risk_assert.info.risk">风险系统名称：{{risk_assert.info.risk}}</p>
+								</div>
+								<!-- position -->
+								<div style="width:35%">
+									<div class="charts" id="risk_view"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 攻击概览 -->
+					<div class="por-bg" style="height: 100%;width: 50%;">
+						<div class="flex flex-between">
+							<!-- 攻击概览 -->
+							<div style="width: 60%;height: 100%;">
+								<h3>攻击概览</h3>
+								<div class="por-con attack" style="position: relative;padding: 0;">
+									<div class="charts" id="map" style="height: 2.25rem;width: 80%;margin-left: auto;"></div>
+									<!-- group-contorl -->
+									<div class="portrait group-contorl" style="font-size: 13px;">
+										<p>攻击组织</p>
+										<hr>
+										<ul class="">
+											<li v-for="item in groups" :key="item.id">
+												<el-tooltip :disabled="(item.desc==''||!item.desc)" effect="dark" :content="item.desc" placement="top-start">
+													<el-radio v-model="group" :label="item.id">{{item.name}}</el-radio>
+												</el-tooltip>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<!-- 攻击频次 -->
+							<div style="width: 40%;height: 100%;">
+								<h3>攻击频次</h3>
+								<div class="por-con freq" style="padding: 0;">
+									<div class="charts" id="attack_freq"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- part2 -->
+				<div class="flex" style="height: 35%;">
+					<!-- 资产预警 -->
+					<div class="por-bg" style="height: 100%;width: 50%;">
+						<div>
+							<h3>资产预警</h3>
+							<div class="por-con flex">
+								<!-- 预警图表 -->
+								<div style="height:100%;width: 50%;">
+									<div class="charts" id="port_switch"></div>
+								</div>
+								<!-- 预警表格 -->
+								<div style="height:100%;width: 50%;">
+									<table class="yby_table portrait-table">
+										<tr>
+											<th width="85px">端口</th>
+											<th>系统名称</th>
+											<th>风险类型</th>
+											<th>口令</th>
+										</tr>
+										<tr v-for="item in warn_assert.port_warn" :key="item.id">
+											<td>{{item.port}}</td>
+											<td>{{item.system}}</td>
+											<td>{{item.warn}}</td>
+											<td>{{item.command}}</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 漏洞预警 -->
+					<div class="por-bg" style="height: 100%;width: 50%;">
+						<div>
+							<h3>漏洞预警</h3>
+							<div class="por-con flex flex-between">
+								<!-- 数字 -->
+								<div class="flex flex-column flex-between" style="width: 33%;height: 100%;">
+									<div class="loophole"><span>漏洞数</span><b>{{vuln_msg.com_vuln_num}}</b></div>
+									<div class="loophole"><span>0day漏洞数</span><b>{{vuln_msg.day_vuln_num}}</b></div>
+									<div class="loophole"><span>补丁数</span><b>{{vuln_msg.patch_num}}</b></div>
+								</div>
+								<!-- 漏洞 -->
+								<div style="width: 33%;height: 100%;">
+									<div class="charts" id="vuln_pie"></div>
+								</div>
+								<!-- 补丁 -->
+								<div style="width: 33%;height: 100%;">
+									<div class="charts" id="patch_pie"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- part3 -->
+				<div style="height: 30%;">
+					<!-- 风险取证 -->
+					<div class="por-bg" style="height: 100%;">
+						<div>
+							<h3>风险取证</h3>
+							<div class="por-con flex flex-around flex-wrap scroll">
+								<div class="img-box" v-for="item in imgs" :key="item.id">
+									<el-image :src="item.url" :preview-src-list="[item.url]"></el-image>
+									<center>{{item.desc}}</center>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=zA2PRmBKnRolQeyb1FmBn6FE6FhenqaH"></script>
+<script src="js/bmap.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/bmap_style.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/portrait_charts.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var app = new Vue({
+		el:"#gx",
+		data:{
+			group: "all",
+			loading:true,
+			risk_assert: {
+				position: [116.506604, 39.964724],
+				info: {
+					'ip':'1.1.1.1',
+					'station':'黑龙江省联通',
+					'province':'黑龙江',
+					'city': '哈尔滨',
+					'service_port':'80、90', 
+					'finger': ["80 asdfasdasdasdasdasdadadasdsad考评时空OA肯定破案肯定破看破奥迪康破考试课破考靠谱看efadfasdadadas","90 ffff"], 
+					'risk': 'xxx风险系统' 
+				}
+			},
+			attack_freq: {
+				xdata: ["2019-10", "2019-11", "2019-12"],
+				data: [{
+					name: "1080",
+					data: [99, 10, 500]
+				}, {
+					name: "80",
+					data: [85, 100, 150]
+				}]
+			},
+			map: {},
+			groups:[],
+			warn_assert: {
+				port_switch: {
+					xdata: ["2019-10", "2019-11", "2019-12"],
+					data: [{
+						name: "1080",
+						data: [1, 0, 1]
+					}, {
+						name: "80",
+						data: [0, 1, 0]
+					}]
+				},
+				port_warn: [{
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+				}, {
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+				}, {
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+				}, {
+					port: "80",
+					system: "系统名称",
+					warn: "按时撒大所大所多所多阿萨德",
+				}]
+			},
+			vuln_msg:{
+				'com_vuln_num':0,
+				'day_vuln_num':0,
+				'patch_num':0,
+				'vuln':{
+					'xdata':['高','中','低'],
+					'data': [1,2,3]
+					},
+				'patch':{
+					'xdata':['已关联','未关联'],
+					'data': [1,2]
+					}
+			},
+			imgs: [{
+				desc: "描述",
+				url: "img/bg.jpg"
+			}, {
+				desc: "描述",
+				url: "img/bg.jpg"
+			}, {
+				desc: "描述",
+				url: "img/bg.jpg"
+			}, {
+				desc: "描述",
+				url: "img/bg.jpg"
+			}, {
+				desc: "描述",
+				url: "img/bg.jpg"
+			},{
+				desc: "描述",
+				url: "img/bg.jpg"
+			}],
+		},
+		watch: {
+			group() {
+				var that = this
+				that.points()
+			}
+		},
+		created(){
+			var that = this
+			//info
+			$.ajax({
+				type: "get",
+				url: urll + "/req/ip_protrait_check?ip=" + GetUrlParam("ip"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.risk_assert = res.data.risk_assert
+						that.warn_assert = res.data.warn_assert
+						that.imgs = res.data.imgs
+						that.vuln_msg = res.data.vuln_msg
+						portrait($("#risk_view")[0], that.risk_assert.position)
+						port_chart($("#port_switch")[0], that.warn_assert.port_switch, "")
+						craete_pie($("#vuln_pie")[0],that.vuln_msg.vuln,"漏洞威胁情况")
+						craete_pie($("#patch_pie")[0],that.vuln_msg.patch,"关联补丁情况")
+					}
+				},
+				error: function() {}
+			})
+			//频率
+			$.ajax({
+				type: "get",
+				url: urll + "/req/ip_protrait_attack?ip=" + GetUrlParam("ip"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.attack_freq = res.data.attack_freq
+						create_line($("#attack_freq")[0], that.attack_freq, "")
+					}
+				},
+				error: function() {}
+			})
+			//轨迹
+			$.ajax({
+				type: "get",
+				url: urll + "/req/get_map_attack_track?ip=" + GetUrlParam("ip"),
+				async: true,
+				success: function(res) {
+					if (res.error_code == 0) {
+						that.map = res.data
+						that.groups = res.data.group
+						$.get('mapJson/china.json', function(Json) {
+							echarts.registerMap('china', Json);
+							create_map($("#map")[0], that.map, true, true, true)
+						});
+					}
+				},
+				error: function() {}
+			})
+		},
+		mounted(){
+			var that = this
+			setTimeout(function() {
+				that.loading = false
+			}, 1000);
+		},
+		methods:{
+			//地图
+			points() {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/get_map_attack_track?ip=" + GetUrlParam("ip") + "&group=" + that.group,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.map = res.data
+							that.$nextTick(function() {
+								create_map($("#map")[0], that.map, true, true, true)
+							})
+						}
+					},
+					error: function() {}
+				})
+			},
+		}
+	})
+</script>

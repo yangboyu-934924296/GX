@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>风险态势关联分析平台</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+	</head>
+	<body>
+		<div class="gx-main" id="gx" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,1)">
+			<!-- head -->
+			<headtop></headtop>
+			<!-- contorl -->
+			<div class="view-contorl flex">
+				<span v-for="item in contorls" :key="item.id" class="vc-btn" :class="{'on':value==item.id}" @click="contorl(item.id)">
+					<img v-if="item.pic_name!=''" class="vc-img" :src="'img/icon/'+item.pic_name+'.png'">
+					<b>{{item.name}}</b>
+				</span>
+			</div>
+			<!-- attack-contorl -->
+			<div class="attack-contorl">
+				<div>
+					<span>蜜罐攻击：</span>
+					<el-switch v-model="showHoney" active-color="rgba(0,87,100,.5)" active-text="开" inactive-text="关">
+					</el-switch>
+				</div>
+				<div>
+					<span>预测攻击：</span>
+					<el-switch v-model="showPredict" active-color="rgba(0,87,100,.5)" active-text="开" inactive-text="关">
+					</el-switch>
+				</div>
+				<div>
+					<span>漏洞聚焦：</span>
+					<el-switch v-model="showLoophole" active-color="rgba(0,87,100,.5)" active-text="开" inactive-text="关">
+					</el-switch>
+				</div>
+			</div>
+			<!-- group-contorl -->
+			<div class="group-contorl" v-show="(showHoney||showPredict)">
+				<p>攻击组织</p>
+				<hr>
+				<ul class="flex flex-wrap">
+					<li v-for="item in groups" :key="item.id">
+						<el-tooltip :disabled="(item.desc=='')" effect="dark" :content="item.desc" placement="top-start">
+							<el-radio v-model="group" :label="item.id">{{item.name}}</el-radio>
+						</el-tooltip>
+					</li>
+				</ul>
+			</div>
+			<!-- main -->
+			<div class="main flex">
+				<div class="charts" id="map"></div>
+			</div>
+			<!-- chart-box -->
+			<charts ref="chart"></charts>
+			<!-- footer -->
+			<footerl ref="footer" @view-type="view"></footerl>
+			<!-- 弹窗 -->
+			<popup ref="popup"></popup>
+		</div>
+	</body>
+	<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/charts.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/popup.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/footer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/charts.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var gx = new Vue({
+			el: "#gx",
+			data: {
+				loading: true,
+				show_chart: true,
+				view_type: "ip",
+				value: "2",
+				group:"",
+				isgroup:true,
+				groups:[],
+				value_default: {
+					ip: "2",
+					assert: "控制设备",
+					group: "all",
+					company: "7"
+				},
+				// 威胁组织图
+				threat_grounp_list: {
+					xdata: [{
+							name: "销售",
+							max: 6500
+						}, {
+							name: "管理",
+							max: 6500
+						}, {
+							name: "支出",
+							max: 6500
+						},
+						{
+							name: "行业1",
+							max: 6500
+						}, {
+							name: "行业2",
+							max: 6500
+						}, {
+							name: "行业3",
+							max: 6500
+						},
+					],
+					"data": [{
+						name: "数据分析",
+						data: [1000, 1000, 1000, 1000, 1000, 1000]
+					}],
+				},
+				//设备风险图
+				device_risk_list: {
+					xdata: ["2019-10", "2019-11", "2019-12"],
+					data: [{
+						name: "核查核查核",
+						data: [1000, 1000, 1000]
+					}, {
+						name: "预警预警预",
+						data: [999, 555, 666]
+					}, {
+						name: "POC发布",
+						data: [234, 456, 432]
+					}, {
+						name: "漏洞发布",
+						data: [123, 456, 867]
+					}]
+				},
+				//企业
+				company_list: {
+					xdata: ["top10123123123", "top9", "top8", "top7", "top6", "top5", "top4", "top3", "top2", "top1"],
+					data: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+				},
+				//风险态势图
+				risk_state: {
+					xdata: [],
+					data: [{
+						name: "预警数据",
+						data: [300]
+					}, {
+						name: "工业互联网风险数据",
+						data: [900]
+					}, {
+						name: "工业互联网数据",
+						data: [1800]
+					}]
+				},
+				//控制面板
+				contorls: [],
+				//地图点
+				pointslist: {},
+				//攻击控制
+				showHoney: false,
+				showPredict: false,
+				showLoophole: false,
+			},
+			watch: {
+				showHoney() {
+					var that = this
+					create_map($("#map")[0], that.pointslist, that.showHoney, that.showPredict, that.showLoophole);
+				},
+				showPredict() {
+					var that = this
+					create_map($("#map")[0], that.pointslist, that.showHoney, that.showPredict, that.showLoophole);
+				},
+				showLoophole() {
+					var that = this
+					create_map($("#map")[0], that.pointslist, that.showHoney, that.showPredict, that.showLoophole);
+				},
+				group(){
+					var that = this
+					that.points(that.view_type,that.value)
+				}
+			},
+			created() {
+				var that = this
+				//控制器
+				that.get_contorls(that.view_type)
+				setTimeout(function() {
+					that.loading = false
+				}, 1000)
+				$.ajax({
+					type: "get",
+					url: urll + "/req/index_point?view_type=ip&value=2",
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.pointslist = res.list
+							that.groups = res.group||[]
+							$.get('mapJson/china.json', function(Json) {
+								echarts.registerMap('china', Json);
+								create_map($("#map")[0], that.pointslist, that.showHoney, that.showPredict, that.showLoophole);
+							});
+						}
+					},
+					error: function() {}
+				})
+			},
+			mounted() {
+				var that = this
+				//威胁组织图
+				that.get_chart_data("attack_group", function(list) {
+					that.threat_grounp_list = list
+					radar_chart($("#threat-grounp")[0], that.threat_grounp_list, "威胁组织")
+				})
+				//设备风险
+				that.get_chart_data("assert_risk", function(list) {
+					that.device_risk_list = list
+					line_chart($("#device-risk")[0], that.device_risk_list, "设备风险")
+				})
+				//企业
+				that.get_chart_data("company_risk", function(list) {
+					that.company_list = list
+					bar_chart($("#company")[0], that.company_list, "企业")
+				})
+				//风险态势
+				that.get_chart_data("ip_risk", function(list) {
+					that.risk_state = list
+					for (var i = 0; i < that.risk_state.data.length; i++) {
+						if (that.risk_state.data[i].name == "工业互联网预警ip") {
+							that.$refs.chart.risk1 = that.risk_state.data[i].data[0]
+						} else if (that.risk_state.data[i].name == "工业互联网风险ip") {
+							that.$refs.chart.risk2 = that.risk_state.data[i].data[0]
+						} else if (that.risk_state.data[i].name == "工业互联网ip") {
+							that.$refs.chart.risk3 = that.risk_state.data[i].data[0]
+						}
+					}
+				})
+			},
+			methods: {
+				//图
+				get_chart_data(static_type, callback) {
+					var list = []
+					$.ajax({
+						type: "get",
+						url: urll + "/req/index_static?static_type=" + static_type,
+						async: true,
+						success: function(res) {
+							if (res.error_code == 0) {
+								list = res.list
+								callback(list)
+							}
+						},
+						error: function() {}
+					})
+				},
+				//地图
+				points(view_type, value) {
+					var that = this
+					$.ajax({
+						type: "get",
+						url: urll + "/req/index_point?view_type=" + view_type + "&value=" + value + "&group=" + that.group,
+						async: true,
+						success: function(res) {
+							if (res.error_code == 0) {
+								that.pointslist = res.list
+								if(that.group==""||that.group=="all"){
+									that.groups = res.group||[]
+								}
+								that.$nextTick(function() {
+									create_map($("#map")[0], that.pointslist, that.showHoney, that.showPredict, that.showLoophole);
+								})
+							}
+						},
+						error: function() {}
+					})
+				},
+				//视角
+				view(view_type) {
+					var that = this
+					that.view_type = view_type
+					that.showHoney = false
+					that.showPredict = false
+					that.showLoophole = false
+					that.group = "all"
+					if(view_type=="group"){
+						that.showHoney = true
+					}else{
+					}
+					//控制器
+					that.get_contorls(view_type)
+					that.value = that.value_default[view_type]
+					//地图点切换
+					that.points(view_type, that.value_default[view_type])
+				},
+				//控制器
+				get_contorls(view_type) {
+					var that = this
+					$.ajax({
+						type: "get",
+						url: urll + "/req/index_control?view_type=" + view_type,
+						async: true,
+						success: function(res) {
+							if (res.error_code == 0) {
+								that.contorls = res.data
+							} else {
+								that.$message.error({
+									dangerouslyUseHTMLString: true,
+									message: res.message
+								})
+							}
+						},
+						error: function() {
+							that.$message.error("系统错误请联系管理员")
+						}
+					})
+				},
+				//控制器切换
+				contorl(value) {
+					var that = this
+					that.value = value
+					that.showHoney = false
+					that.showPredict = false
+					that.showLoophole = false
+					that.group = "all"
+					if(that.view_type=="group"){
+						that.showHoney = true
+					}
+					//地图点切换
+					that.points(that.view_type, value)
+				},
+			}
+		})
+	</script>
+</html>

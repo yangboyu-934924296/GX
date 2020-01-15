@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>风险态势关联分析平台</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css"/>
+		<link rel="stylesheet" type="text/css" href="css/style.css"/>
+		<link rel="stylesheet" type="text/css" href="css/page.css" />
+		<link rel="stylesheet" type="text/css" href="css/search.css" />
+	</head>
+	<body>
+		<div class="gx-main" id="app" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,1)">
+			<!-- head -->
+			<headtop :index="on_index"></headtop>
+			<!--main-->
+			<div class="main flex">
+				<!-- 左 -->
+				<!-- left -->
+				<div class="left">
+					<!-- title -->
+					<h2 class="title flex">
+						<span>省份：</span>
+						<!-- provinces -->
+						<div>
+							<el-select size="mini" v-model="province" placeholder="请选择" @change="province_change">
+								<el-option v-for="item in provinces" :key="item.id" :label="item.name" :value="item.id">
+								</el-option>
+							</el-select>
+						</div>
+						
+					</h2>
+					<div class="left-con flex flex-three">
+						<!-- part1 -->
+						<div class="bg" v-for="item in cont_left" :key="item.id">
+							<div>
+								<!-- list -->
+								<div class="control-list">
+									<!-- tit -->
+									<h3 class="control-title">{{item.name}}</h3>
+									<div class="control-con scroll">
+										<label class="control-item flex" :class="ite.val==ite.id?'on':''" v-for="ite in item.list" :key="ite.id" @change="change_cont(item.type,ite.id)">
+											<input type="radio" v-model="ite.val" :value="ite.id" />
+											<span>{{ite.name}}</span><b>{{ite.count}}</b>
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 中 -->
+				<div class="mid map-box search-mid">
+					<h2 class="tit_h2">
+						<!--<a href="search_multi.html" target="_blank" style="font-size: 14px;color: #0C819D;">复选搜索模式</a>-->
+						<input type="text" v-model="condition" placeholder="请输入要搜索的内容" v-on:keydown.enter="query"/>
+						<span class="glyphicon glyphicon-search" @click="query" ></span>
+					</h2>
+					<div class="coll scroll">
+						<ul class="data_list">
+							<li v-for="item in datalist" :key="item.id">
+								<!--频率-->
+								<div class="frequency">
+									频率&nbsp;&nbsp;<span>{{item.repeatCount}}</span>
+								</div>
+								<ul class="data_list-info">
+									<li><h2><a :href="'assets_portrait.html?name='+item.ip" target="_blank">{{item.ip}}</a></h2></li>
+									<li :title="item.baseline"><i class="operator-icon"></i>{{item.baseline}}</li>
+									<li><i class="site-icon"></i>{{item.province}}&nbsp;&nbsp;{{item.city}}</li>
+									<li :title="item.recordTime"><i class="time-icon"></i>{{item.recordTime}}</li>
+									<li :title="item.companyName"><i class="industry-icon"></i><a :href="'company_portrait.html?name='+item.companyName+'&com_id='+item.com_id" target="_blank">{{item.companyName}}</a></li>
+								</ul>
+								<div class="data_list-content">
+									<ul>
+										<li class="data_list-content-msg" v-for="ite in item.msg" :key="ite.id">
+											<div  class="flex flex-between">
+												<span>指纹类型：{{ite.finger_type}}</span>
+											</div>
+											<ul v-for="it in ite.msg" :key="it.id">
+												<li >
+													<span>核查时间：{{it.check_time}}</span>
+													<span>资产类型：{{it.assert_name}}</span>
+													<span>协议类型：{{it.aggree_type}}</span>
+													<span>存在漏洞数：{{it.vuln_count}}</span>
+													<span>网络攻击风险：{{it.attack_type}}</span>
+													<span>端口：<a :href="it.url" target="_blank">{{it.port}}</a></span>
+													<span>风险类型：<b class="el-icon-message-solid" :class="{warn:it.riskType==1}"></b></span>
+													<span>系统界面：{{it.risk_name}}</span>
+													<span>加密：<i class="locking" :class="{un:ite.password==0}"></i></span>
+													<!-- <span>加密：{{it.password}}</span> -->
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<!--分页-->
+					<componenta ref="temp" :pages="pageTotal" v-on:enlarge-text="page" :current="pageNo" ></componenta>
+					
+				</div>
+				<!-- 右 -->
+				<div class="right">
+					<!-- title -->
+					<h2 class="title flex"></h2>
+					<div class="right-con flex flex-three">
+						<!-- part1 -->
+						<div class="bg" v-for="item in cont_right" :key="item.id">
+							<div>
+								<!-- list -->
+								<div class="control-list">
+									<!-- tit -->
+									<h3 class="control-title">{{item.name}}</h3>
+									<div class="control-con scroll">
+										<label class="control-item flex" :class="ite.val==ite.id?'on':''" v-for="ite in item.list" :key="ite.id" @change="change_cont(item.type,ite.id)">
+											<input type="radio" v-model="ite.val" :value="ite.id" />
+											<span>{{ite.name}}</span><b>{{ite.count}}</b>
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+				
+		</div>
+	</body>
+	<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+	<script src="compoment/temp.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var v = new Vue({
+			el:"#app",
+			data:{
+				on_index:6,
+				loading:true,
+				condition:"",
+				pageNo:"2",
+				pageTotal:"2",
+				//省份
+				province: 0,
+				provinces: [{id: 0,name: "黑龙江"}, {id: 1,name: "吉林"}, {id: 2,name: "辽宁"}],
+				cont_left:[
+					{name:"城市",type:"city",list:[{id: 0,name: "黑龙江",}, {id: 1,name: "吉林"}, {id: 2,name: "辽宁"}],val:""},
+					{name:"时间",type:"time",list:[{id: 01,name: "黑龙江"}, {id: 11,name: "吉林"}, {id: 21,name: "辽宁"}],val:""},
+					{name:"行业",type:"industry",list:[{id: 02,name: "黑龙江"}, {id: 21,name: "吉林"}, {id: 22,name: "辽宁"}],val:""},
+				],
+				cont_right:[
+					{name:"指纹类型",type:"dev",list:[]},
+					{name:"攻击方式",type:"attack",list:[]},
+					{name:"资产类型",type:"assert",list:[]},
+				],
+				type:"",
+				datalist:[],
+				//异常数据
+				errorlist:[
+					{
+						ip:"192.168.1.168",
+						value:['哈尔滨','齐齐哈尔']
+					},
+					{
+						ip:"192.168.1.168",
+						value:['哈尔滨','齐齐哈尔','哈尔滨','齐齐哈尔']
+					},
+				],
+				first:{
+					"city":"全部",
+					"time":"全部",
+					"industry":"全部",
+					"dev":"全部",
+					"attack":"全部",
+					"assert":"全部",
+				}
+			},
+			created(){
+				var that = this
+				//获取省份
+				get_area("ip",function(list){
+					that.provinces = list
+					that.$nextTick(function(){that.reset()})
+				})
+				setTimeout(function(){
+					that.loading = false
+				},1000)
+			},
+			mounted(){
+				
+			},
+			methods:{
+				//页面置顶
+				scroll_top(){
+					$(".coll").animate({scrollTop:0}, 300);
+				},
+				//搜索查询
+				query(){
+					var that = this;
+					that.ContData()
+					that.data_query()
+				},
+				//复位
+				reset(){
+					var that = this;
+					that.first={
+						"city":"全部",
+						"time":"全部",
+						"industry":"全部",
+						"dev":"全部",
+						"attack":"全部",
+						"assert":"全部",
+					}
+					that.condition = ""
+					for(let i = 0;i<that.cont_left.length;i++){
+						that.$set(that.cont_left[i],"value","全部")
+					}
+					for(let i = 0;i<that.cont_right.length;i++){
+						that.$set(that.cont_right[i],"value","全部")
+					}
+					that.$nextTick(function(){
+						that.ContData()
+						that.data_query()
+					})
+				},
+				//控制器查询
+				change_cont(first,first_value){
+					var that = this;
+					if(first!="repeat"){
+						that.$set(that.first,"repeat","全部")
+						that.$set(that.cont_right[1],"value","全部")
+					}
+					that.$set(that.first,first,first_value)
+					that.$nextTick(function(){
+						that.ContData()
+						that.data_query()
+					})
+				},
+				//查询
+				data_query(){
+					var that = this;
+					var data ={
+						data:JSON.stringify({
+							first:that.first,
+							condition:that.condition,
+							province:that.province,
+							pageNo:1
+						})
+					}
+					$.ajax({
+						type:"post",
+						url:urll+"/req/search_list_multi",
+						async:true,
+						data:data,
+						success:function(data){
+							if(data.error_code==0){
+								that.datalist = data.data
+								that.pageTotal = data.pageTotal
+								that.$nextTick(function(){
+									that.reset_page()
+									that.scroll_top()
+								})
+								that.$message.success("查询成功")
+							}else{
+								that.$message.error(data.message)
+							}
+						},
+						error:function(){that.$message.error("系统错误请联系管理员")}
+					});
+				},
+				//更新信息
+				updata(){
+					var that = this;
+					var data ={
+						data:JSON.stringify({
+							first:that.first,
+							condition:that.condition,
+							province:that.province,
+							pageNo:that.pageNo
+						})
+					}
+					$.ajax({
+						type:"post",
+						url:urll+"/req/search_list_multi",
+						async:true,
+						data:data,
+						success:function(data){
+							if(data.error_code==0){
+								that.datalist = data.data
+								that.$message.success("加载完成")
+								that.$nextTick(function(){
+									that.scroll_top()
+								})
+							}else{
+								that.$message.error(data.message)
+							}
+						},
+						error:function(){that.$message.error("系统错误请联系管理员")}
+					});
+				},
+				//分页当前页码
+				page(enlargeAmount){
+					var that = this
+					that.pageNo = enlargeAmount
+					that.$nextTick(function(){
+						that.updata()
+					})
+				},
+				//分页复位
+				reset_page(){
+					var that = this;
+					that.pageNo = 1
+					that.$refs.temp.reset()
+				},
+				//控制器数据请求
+				ContData(){
+					var that = this;
+					var data ={
+						data:JSON.stringify({
+							first:that.first,
+							condition:that.condition,
+							province:that.province,
+						})
+					}
+					$.ajax({
+						type:"post",
+						url:urll+"/req/search_multi",
+						async: true,
+						data:data,
+						success:function(data){
+							if(data.error_code==0){
+								that.$set(that.cont_left[0],"list",data.citylist)
+								that.$set(that.cont_left[1],"list",data.timelist)
+								that.$set(that.cont_left[2],"list",data.industrylist)
+								that.$set(that.cont_right[0],"list",data.devlist)
+								that.$set(that.cont_right[1],"list",data.attacklist)
+								that.$set(that.cont_right[2],"list",data.assertlist)
+								
+							}else{
+								that.$message.error(data.message)
+							}
+						},
+						error:function(xhr){that.$message.error("系统错误请联系管理员")}
+					})
+				},
+				//省份修改
+				province_change(val){
+					var that = this
+					that.reset()
+				},
+			}
+		})
+	</script>
+</html>

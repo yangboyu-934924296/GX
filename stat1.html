@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>风险态势关联分析平台</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+	</head>
+	<link rel="stylesheet" type="text/css" href="css/reset.css"/>
+	<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css"/>
+	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+	<body>
+		<div class="gx-main" id="gx" v-cloak v-loading="loading" element-loading-background="rgba(10,53,69,1)">
+			<!-- head -->
+			<headtop></headtop>
+			<!-- main -->
+			<div class="main stat flex">
+				<!-- 上半部分 -->
+				<div class="stat-top flex">
+					<div class="stat-box">
+						<div class="stat-bg">
+							<h2 class="stat-title">历史风险态势</h2>
+							<!-- 数字 -->
+							<div class="stat-num flex flex-around">
+								<div>
+									<p>{{number.scan_ip}}</p>
+									<h6>年内扫描ip数</h6>
+								</div>
+								<div>
+									<p>{{number.check_ip}}</p>
+									<h6>年内核查ip数</h6>
+								</div>
+								<div>
+									<p>{{number.risk_company}}</p>
+									<h6>风险企业数</h6>
+								</div>
+							</div>
+							<!-- 图 -->
+							<div class="stat-chart flex flex-two flex-column">
+								<!-- ip核查数量趋势 -->
+								<div class="charts" id="line_ip"></div>
+								<!-- 设备分布 -->
+								<div class="charts" id="bar_assert"></div>
+							</div>
+						</div>
+					</div>
+					<div class="stat-box">
+						<div class="stat-bg">
+							<h2 class="stat-title">工业漏洞态势</h2>
+							<!-- 数字 -->
+							<div class="stat-num flex flex-around">
+								<div>
+									<p>{{number.vuln}}</p>
+									<h6>工控漏洞数</h6>
+								</div>
+								<div>
+									<p>{{number.day_vuln}}</p>
+									<h6>0day漏洞数</h6>
+								</div>
+								<div>
+									<p>{{number.mining_vuln}}</p>
+									<h6>挖掘漏洞数</h6>
+								</div>
+								<div>
+									<p>{{number.patch}}</p>
+									<h6>工控补丁数</h6>
+								</div>
+							</div>
+							<!-- 图 -->
+							<div class="stat-chart flex flex-two flex-column">
+								<!-- 漏洞库数据情况 -->
+								<div class="charts" id="pie_vuln_patch"></div>
+								<!-- 漏洞补丁变化趋势 -->
+								<div class="charts" id="line_vuln"></div>
+							</div>
+						</div>
+					</div>
+					<div class="stat-box">
+						<div class="stat-bg">
+							<h2 class="stat-title">全国安全态势</h2>
+							<!-- 控制 -->
+							<div class="stat-heatmap-control">
+								<el-switch v-model="types" active-value="ip" active-text="核查IP" inactive-text="漏洞分布" inactive-value="vuln">
+								</el-switch>
+							</div>
+							<!-- 热力图 -->
+							<div class="stat-chart heat">
+								<div class="charts" id="heatmap"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 下半部分 -->
+				<div class="stat-bottom flex">
+					<div class="flex flex-two">
+						<div class="stat-box">
+							<div class="stat-bg">
+								<h2 class="stat-title">高危省份TOP5</h2>
+								<div class="stat-chart only">
+									<div class="charts" id="bar_risk_province"></div>
+								</div>
+							</div>
+						</div>
+						<div class="stat-box">
+							<div class="stat-bg">
+								<h2 class="stat-title">高危设备TOP5</h2>
+								<div class="stat-chart only">
+									<div class="charts" id="bar_risk_assert"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="flex flex-two">
+						<div class="stat-box">
+							<div class="stat-bg">
+								<h2 class="stat-title">IP风险类型TOP5</h2>
+								<div class="stat-chart only">
+									<div class="charts" id="bar_risk_net"></div>
+								</div>
+							</div>
+						</div>
+						<div class="stat-box">
+							<div class="stat-bg">
+								<h2 class="stat-title">高危组织TOP5</h2>
+								<div class="stat-chart only">
+									<div class="charts" id="bar_risk_port"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="stat-box">
+						<div class="stat-bg">
+							<h2 class="stat-title">全国工控网络风险</h2>
+							<div class="stat-chart only flex flex-three">
+								<div class="charts" id="dashboard_ip"></div>
+								<div class="charts" id="dashboard_vuln"></div>
+								<div class="charts" id="dashboard_company"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/stat-charts.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/headtop.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var gx = new Vue({
+		el:"#gx",
+		data:{
+			loading:true,
+			types:"ip",
+			number:{ 
+				'scan_ip':100,
+			    'check_ip':100,
+			    'risk_company':100,
+			    'vuln':100,
+			    'day_vuln':100,
+			    'mining_vuln':100,
+			    'patch':100,
+			}
+		},
+		watch:{
+			types(val){
+				var that = this
+				that.get_heat_map(that.types,function(data){
+					heatmap($("#heatmap")[0],data.data,data.min,data.max)
+				})
+			}
+		},
+		created(){
+			var that = this
+			setTimeout(function() {
+				that.loading = false
+			}, 1000)
+			//数字信息
+			that.get_count(function(data){
+				that.number = data
+			})
+			//热力信息
+			that.get_heat_map(that.types,function(data){
+				$.get('mapJson/china.json', function(Json) {
+					echarts.registerMap('china', Json);
+					heatmap($("#heatmap")[0],data.data,data.min,data.max)
+				});
+			})
+			//折线&ip（核查数和设备数趋势）vuln （漏洞补丁趋势）
+			that.get_chart_data("line",function(data){
+				create_line($("#line_ip")[0],data.ip,"ip核查数量趋势",["#3eb072","#e69b0b"])
+				create_line($("#line_vuln")[0],data.vuln,"漏洞补丁变化趋势",["#ec393a","#0f9aea"])
+			})
+			//饼& vuln （漏洞威胁分布）patch（补丁分布）
+			that.get_chart_data("pie",function(data){
+				craete_pie_ring($("#pie_vuln_patch")[0],data.patch,data.vuln,"漏洞库数据情况")
+			})
+			//柱&assert（设备情况）risk_province（高危省份top5） risk_assert（高危设备top5）risk_net(高危网络风险top5) risk_port(高危端口top5)
+			that.get_chart_data("bar",function(data){
+				craete_bar_row($("#bar_assert")[0],data.assert,"设备分布")
+				create_bar_top($("#bar_risk_province")[0],data.risk_province,["#28d7ec","#20abeb"],5)
+				create_bar_top($("#bar_risk_assert")[0],data.risk_assert,["#ffa64f","#ff7e00"],5)
+				create_bar_top($("#bar_risk_net")[0],data.risk_net,["#73ffcc","#17e79b"],5)
+				create_bar_top($("#bar_risk_port")[0],data.risk_port,["#419fff","#0090ff"],7)
+			})
+			//仪表&ip（ip网络威胁占比）vuln （漏洞威胁占比） company（企业漏洞占比）
+			that.get_chart_data("dashboard",function(data){
+				create_dashboard($("#dashboard_ip")[0],data.ip,"IP受网络攻击占比","#0f9aea")
+				create_dashboard($("#dashboard_vuln")[0],data.vuln,"设备漏洞占比","#fbb100")
+				create_dashboard($("#dashboard_company")[0],data.company,"企业存在漏洞占比","#2adbd5")
+			})
+		},
+		mounted(){
+			
+		},
+		methods:{
+			//数字
+			get_count(callback) {
+				var data = {}
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_count",
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							data = res.data
+							callback(data)
+						}
+					},
+					error: function() {}
+				})
+			},
+			//图表
+			get_chart_data(static_type, callback) {
+				var data = []
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_static?static_type=" + static_type,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							data = res
+							callback(data)
+						}
+					},
+					error: function() {}
+				})
+			},
+			//热力
+			get_heat_map(types, callback) {
+				var list = []
+				$.ajax({
+					type: "get",
+					url: urll + "/req/home_map?types=" + types,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							list = res.data
+							callback(list)
+						}
+					},
+					error: function() {}
+				})
+			},
+		}
+	})
+</script>
