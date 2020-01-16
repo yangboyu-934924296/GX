@@ -184,17 +184,6 @@
 								</div>
 								<!-- 下拉 -->
 								<div class="flex" style="justify-content: center;">
-									<span>威胁程度：</span>
-									<div style="display: inline-block;width: 100px;margin-right: 10px;">
-									<el-select size="mini" v-model="leaklevel" placeholder="请选择">
-									    <el-option
-									      v-for="item in leaklevelList"
-									      :key="item.id"
-									      :label="item.name"
-									      :value="item.id">
-									    </el-option>
-									  </el-select>
-									  </div>
 									  <span>厂商：</span>
 									  <div style="display: inline-block;width: 100px;">
 									  <el-select size="mini" v-model="leakvendor" placeholder="请选择">
@@ -482,8 +471,6 @@
 			],
 			//漏洞
 			leakType:"general",
-			leaklevel:"all",
-			leaklevelList:[{id:"all",name:"全部"}],
 			leakvendor:"all",
 			leakvendorList:[{id:"all",name:"全部"}],
 			risk_assert:"10",
@@ -563,11 +550,11 @@
 			var that = this
 			//图表
 			that.check_chart(that.checkType,that.checktype)
-			that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+			that.leak_chart(that.leakType,that.leakvendor)
 			that.group_chart(that.groupType)
 			//表格
 			that.check_table_data(that.checkType,that.checktype,1)
-			that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+			that.leak_table_data(that.leakType,that.leakvendor,1)
 			that.group_table_data(that.groupType,1)
 		},
 		watch:{
@@ -577,16 +564,10 @@
 				that.check_table_data(that.checkType,that.checktype,1)
 				that.checkpage = 1
 			},
-			leaklevel(val){
-				var that = this
-				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
-				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
-				that.leakpage = 1
-			},
 			leakvendor(val){
 				var that = this
-				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
-				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+				that.leak_chart(that.leakType,that.leakvendor)
+				that.leak_table_data(that.leakType,that.leakvendor,1)
 				that.leakpage = 1
 			},
 			groupType(val){
@@ -684,13 +665,11 @@
 					async: true,
 					success: function(res) {
 						if (res.error_code == 0) {
-							that.leaklevelList = res.leaklevelList
-							that.leaklevel = res.leaklevelList[0].id
 							that.leakvendorList = res.leakvendorList
 							that.leakvendor = res.leakvendorList[0].id
 							that.$nextTick(function(){
-								that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
-								that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+								that.leak_chart(that.leakType,that.leakvendor)
+								that.leak_table_data(that.leakType,that.leakvendor,1)
 							})
 						}
 					},
@@ -698,11 +677,11 @@
 				})
 			},
 			//漏洞图表
-			leak_chart(type,vendor,level){
+			leak_chart(type,vendor){
 				var that = this
 				$.ajax({
 					type: "get",
-					url: urll + "/req/home_static_leak?type="+type+"&vendor="+vendor+"&level="+level,
+					url: urll + "/req/home_static_leak?type="+type+"&vendor="+vendor,
 					async: true,
 					success: function(res) {
 						if (res.error_code == 0) {
@@ -768,11 +747,11 @@
 				that.check_table_data(that.checkType,that.checktype,val)
 			},
 			//漏洞表格
-			leak_table_data(type,vendor,level,page){
+			leak_table_data(type,vendor,page){
 				var that = this
 				$.ajax({
 					type: "get",
-					url: urll + "/req/leak_table?type="+type+"&vendor="+vendor+"&level="+level+"&page="+page,
+					url: urll + "/req/leak_table?type="+type+"&vendor="+vendor+"&page="+page,
 					async: true,
 					success: function(res) {
 						if (res.error_code == 0) {
@@ -785,7 +764,7 @@
 			},
 			get_leak_table(val){
 				var that = this
-				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,val)
+				that.leak_table_data(that.leakType,that.leakvendor,val)
 			},
 			//组织表格
 			group_table_data(group,page){
