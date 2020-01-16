@@ -348,7 +348,7 @@ function craete_pie_ring(chart, patch,vuln, title) {
 	} else {
 		var mychart = echarts.init(chart);
 		var option = {
-			color:["#0f9aea","#16c397","#dedb0a"],
+			color:["#0f9aea","#16c397","#dedb0a",'#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'],
 			title: {
 				text: "{a|} "+title,
 				textStyle: {
@@ -426,7 +426,7 @@ function craete_pie(chart, data, title) {
 	} else {
 		var mychart = echarts.init(chart);
 		var option = {
-			color:["#0f9aea","#16c397","#dedb0a"],
+			color:["#0f9aea","#16c397","#dedb0a",'#c23531','#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'],
 			title: {
 				text: "{a|} "+title,
 				textStyle: {
@@ -455,6 +455,10 @@ function craete_pie(chart, data, title) {
 						formatter:function(params){
 							return params.name+"\n"+Math.round(params.percent)+"%"
 						}
+					},
+					labelLine:{
+						length:5,
+						length2:15,
 					},
 					itemStyle: {
 						normal:{

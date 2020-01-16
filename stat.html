@@ -456,7 +456,7 @@
 			threat_ip:"10",
 			threat_com:"10",
 			check_table:[],
-			checktotal:50,
+			checktotal:1,
 			checkpage:"1",
 			risk_list:{
 				"xdata": ["2019-05","2019-06","2019-07"],
@@ -489,8 +489,8 @@
 			risk_assert:"10",
 			risk_com:"10",
 			leak_table:[],
-			leaktotal:50,
-			leakpage:"2",
+			leaktotal:1,
+			leakpage:"1",
 			vendor_list:{
 				"xdata": ["2019-05","2019-06","2019-07"],
 				"data": [
@@ -517,7 +517,7 @@
 			group_ip:"10",
 			group_com:"10",
 			group_table:[],
-			grouptotal:50,
+			grouptotal:1,
 			grouppage:"1",
 			group_assert_list:{
 				"xdata": ["2019-05","2019-06","2019-07"],
@@ -561,26 +561,39 @@
 		},
 		mounted(){
 			var that = this
+			//图表
 			that.check_chart(that.checkType,that.checktype)
 			that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
 			that.group_chart(that.groupType)
+			//表格
+			that.check_table_data(that.checkType,that.checktype,1)
+			that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+			that.group_table_data(that.groupType,1)
 		},
 		watch:{
 			checktype(val){
 				var that = this
 				that.check_chart(that.checkType,that.checktype)
+				that.check_table_data(that.checkType,that.checktype,1)
+				that.checkpage = 1
 			},
 			leaklevel(val){
 				var that = this
 				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+				that.leakpage = 1
 			},
 			leakvendor(val){
 				var that = this
 				that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
+				that.leakpage = 1
 			},
 			groupType(val){
 				var that = this
 				that.group_chart(that.groupType)
+				that.group_table_data(that.groupType,1)
+				that.grouppage = 1
 			}
 		},
 		methods:{
@@ -599,11 +612,13 @@
 					error: function() {}
 				})
 			},
+			/********************/
 			//核查选择
 			check_type(type){
 				var that = this
 				that.checkType = type
 				that.check_select(type)
+				that.checkpage = 1
 			},
 			//核查下拉
 			check_select(type){
@@ -618,6 +633,7 @@
 							that.checktype = res.list[0].id
 							that.$nextTick(function(){
 								that.check_chart(that.checkType,that.checktype)
+								that.check_table_data(that.checkType,that.checktype,1)
 							})
 						}
 					},
@@ -651,11 +667,13 @@
 					error: function() {}
 				})
 			},
+			/********************/
 			//漏洞选择
 			leak_type(type){
 				var that = this
 				that.leakType = type
 				that.leak_select(type)
+				that.leakpage = 1
 			},
 			//漏洞下拉
 			leak_select(type){
@@ -672,6 +690,7 @@
 							that.leakvendor = res.leakvendorList[0].id
 							that.$nextTick(function(){
 								that.leak_chart(that.leakType,that.leakvendor,that.leaklevel)
+								that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,1)
 							})
 						}
 					},
@@ -703,6 +722,7 @@
 					error: function() {}
 				})
 			},
+			/********************/
 			//组织图表
 			group_chart(group){
 				var that = this
@@ -727,19 +747,65 @@
 					error: function() {}
 				})
 			},
-			
-			
 			//风险表格
+			check_table_data(type,value,page){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/check_table?type="+type+"&value="+value+"&page="+page,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.check_table = res.list
+							that.checktotal = res.total
+						}
+					},
+					error: function() {}
+				})
+			},
 			get_check_table(val){
-				console.log(val)
+				var that = this
+				that.check_table_data(that.checkType,that.checktype,val)
 			},
 			//漏洞表格
+			leak_table_data(type,vendor,level,page){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/leak_table?type="+type+"&vendor="+vendor+"&level="+level+"&page="+page,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.leak_table = res.list
+							that.leaktotal = res.total
+						}
+					},
+					error: function() {}
+				})
+			},
 			get_leak_table(val){
-				console.log(val)
+				var that = this
+				that.leak_table_data(that.leakType,that.leakvendor,that.leaklevel,val)
 			},
 			//组织表格
+			group_table_data(group,page){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/group_table?group="+group+"&page="+page,
+					async: true,
+					success: function(res) {
+						if (res.error_code == 0) {
+							that.group_table = res.list
+							that.grouptotal = res.total
+						}
+					},
+					error: function() {}
+				})
+			},
 			get_group_table(val){
-				console.log(val)
+				var that = this
+				that.group_table_data(that.groupType,val)
 			},
 		}
 	})
