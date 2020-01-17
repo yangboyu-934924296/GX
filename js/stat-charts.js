@@ -495,6 +495,7 @@ function craete_pie(chart, data, title) {
 			}
 			]
 		})
+		mychart.resize()
 	} else {
 		var mychart = echarts.init(chart);
 		var option = {
@@ -519,7 +520,7 @@ function craete_pie(chart, data, title) {
 				{
 					name: '占比',
 					type: 'pie',
-					radius : '55%',
+					radius : '48%',
 					center: ['50%', '60%'],
 					data:data,
 					label:{
