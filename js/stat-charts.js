@@ -100,12 +100,84 @@ function create_line(chart,data,title,color){
 	}
 	if (echarts.getInstanceByDom(chart)) {
 		var mychart = echarts.getInstanceByDom(chart);
-		mychart.setOption({
+		mychart.clear()
+		var option = {
+			color: color,
+			title: {
+				text: "{a|} "+title,
+				textStyle: {
+					color: "#d9ebf0",
+					fontSize: "16",
+					fontWeight: "normal",
+					rich:{
+						a:{
+							width:10,
+							height:10,
+							borderRadius:5,
+							backgroundColor:"#17cced"
+						}
+					}
+				},
+			},
+			legend: {
+				right:"center",
+				align:"left",
+				textStyle: {
+					color: "#eef4f7",
+				},
+			},
+			tooltip: {
+				trigger: 'axis',
+			
+				axisPointer: {
+					type: "line",
+				}
+			},
+			grid: {
+			  left: '15%',
+			  right:"15%"
+			},
 			xAxis: {
-				data: data.xdata,
+				axisTick: {
+					alignWithLabel: true,
+				},
+				axisLabel: {
+					rotate: "-45",
+					color: "#b0dde9",
+				},
+				axisLine: {
+					show: false,
+					lineStyle: {
+						color: "#34788d"
+					}
+				},
+				splitLine: {
+					show: false,
+					lineStyle: {
+						color: "#34788d"
+					}
+				},
+				data: data.xdata
+			},
+			yAxis: {
+				axisLabel: {
+					color: "#b0dde9",
+				},
+				axisLine: {
+					lineStyle: {
+						color: "#34788d"
+					}
+				},
+				splitLine: {
+					show: true,
+					lineStyle: {
+						color: "#34788d"
+					}
+				},
 			},
 			series: series
-		})
+		}
+		mychart.setOption(option)
 	} else {
 		var mychart = echarts.init(chart);
 		var option = {

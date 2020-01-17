@@ -331,12 +331,12 @@
 								</div>
 								<!-- 攻击方式 -->
 								<div class="flex flex-around">
-									<div :style="{width:$.isEmptyObject(group_desc)?'100%':'40%'}" class="charts" id="group_leak_list"></div>
-									<div v-if="!$.isEmptyObject(group_desc)" style="width: 60%;" >
-										<p>IP：{{group_desc.ip}}</p>
-										<p>企业：{{group_desc.company}}</p>
-										<p>风险port：{{group_desc.port}}</p>
-										<p>威胁组织：{{group_desc.gruop}}</p>
+									<div :style="{width:$.isEmptyObject(group_desc)?'100%':'50%'}" class="charts" id="group_leak_list"></div>
+									<div v-if="!$.isEmptyObject(group_desc)" style="width: 50%;justify-content: space-around;height: 100%;align-items: flex-start;" class="flex flex-column">
+										<p class="flex"><span>组织ip数：</span><span>{{group_desc.ip_count}}</span></p>
+										<p class="flex" style="align-items: flex-start;"><span>组织描述：</span><span style="word-break: break-all;flex: 1 1 auto;">{{group_desc.desc}}</span></p>
+										<p class="flex"><span>组织所在国家：</span><span>{{group_desc.start_country}}</span></p>
+										<p class="flex"><span>组织威胁等级：</span><span>{{group_desc.level}}</span></p>
 									</div>
 								</div>
 								
@@ -638,7 +638,7 @@
 							that.threat_com = res.data.threat_com
 							that.$nextTick(function(){
 								//核查
-								create_line($("#time_list")[0],that.time_list,"威胁渗透",["#3eb072","#e69b0b"])
+								create_line($("#time_list")[0],that.time_list,"威胁渗透",["#3eb072","#e69b0b","#F4F00B","#10A9FF"])
 								craete_pie($("#com_list")[0],that.com_list,"企业行业")
 								craete_bar_row($("#risk_list")[0],that.risk_list,"设备分布")
 								craete_pie($("#sp_list")[0],that.sp_list,"特殊行业分布")
@@ -694,7 +694,7 @@
 								//漏洞
 								craete_bar_row($("#vendor_list")[0],that.vendor_list,"设备数")
 								craete_pie($("#leak_list")[0],that.leak_list,"漏洞威胁程度")
-								create_line($("#assert_list")[0],that.assert_list,"漏洞补丁变化趋势",["#3eb072","#e69b0b"])
+								create_line($("#assert_list")[0],that.assert_list,"漏洞补丁变化趋势",["#3eb072","#e69b0b","#F4F00B","#10A9FF"])
 							})
 						}
 					},
@@ -718,7 +718,7 @@
 							that.group_com = res.data.group_com
 							that.$nextTick(function(){
 								//攻击态势
-								create_line($("#group_assert_list")[0],that.group_assert_list,"攻击变化趋势",["#3eb072","#e69b0b"])
+								create_line($("#group_assert_list")[0],that.group_assert_list,"攻击变化趋势",["#3eb072","#e69b0b","#F4F00B","#10A9FF"])
 								craete_pie($("#group_leak_list")[0],that.group_leak_list,"攻击方式")
 							})
 						}
