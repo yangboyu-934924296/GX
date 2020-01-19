@@ -363,15 +363,17 @@
 												<tr>
 													<th>IP</th>
 													<th>企业</th>
+													<th>攻击方式</th>
 													<th>风险port</th>
 													<th>威胁组织</th>
 												</tr>
 												<tr v-if="group_table.length==0">
-													<td colspan="4"><h3><center>暂无数据</center></h3></td>
+													<td colspan="5"><h3><center>暂无数据</center></h3></td>
 												</tr>
 												<tr v-for="item in group_table" :key="item.id">
 													<td>{{item.ip}}</td>
 													<td>{{item.company}}</td>
+													<td>{{item.method}}</td>
 													<td>{{item.port}}</td>
 													<td>{{item.group}}</td>
 												</tr>
