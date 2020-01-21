@@ -263,9 +263,9 @@
 												<tr v-for="item in leak_table" :key="item.id">
 													<td><a :href="'assets_portrait.html?ip='+item.ip" target="_blank">{{item.ip}}</a></td>
 													<td><a v-show="item.com_id!=''" :href="'company_portrait.html?name='+item.company+'&com_id='+item.com_id" target="_blank">{{item.company}}</a><span v-show="item.com_id==''">{{item.company}}</span></td>
-													<td v-show="item.vendor">{{item.vendor}}</td>
+													<td >{{item.vendor}}</td>
 													<td v-show="item.threatlevel">{{item.threatlevel}}</td>
-													<td>{{item.desc}}</td>
+													<td v-show="item.desc">{{item.desc}}</td>
 													<td>{{item.time}}</td>
 													<td>{{item.loopholename}}</td>
 												</tr>
@@ -299,15 +299,15 @@
 							<div class="flex flex-between">
 								<div class="stat-num flex flex-around" style="width: 49%;">
 									<div>
-										<p>{{honey_num.honey}}</p>
+										<p>{{group_num.honey}}</p>
 										<h6>蜜罐数</h6>
 									</div>
 									<div>
-										<p>{{honey_num.attack_ip}}</p>
+										<p>{{group_num.attack_ip}}</p>
 										<h6>攻击ip数</h6>
 									</div>
 									<div>
-										<p>{{honey_num.poc}}</p>
+										<p>{{group_num.poc}}</p>
 										<h6>攻击漏洞数</h6>
 									</div>
 								</div>
@@ -316,11 +316,11 @@
 										<h6>组织<br>态势</h6>
 									</div>
 									<div>
-										<p>{{honey_num.group_true}}</p>
+										<p>{{group_num.group_true}}</p>
 										<h6>已分析组织数</h6>
 									</div>
 									<div>
-										<p>{{honey_num.group_false}}</p>
+										<p>{{group_num.group_false}}</p>
 										<h6>未分析组织数</h6>
 									</div>
 								</div>
@@ -452,7 +452,7 @@
 				'mining': 10, 
 				'poc': 10, 
 			},
-			honey_num:{
+			group_num:{
 				'honey':10,
 				'attack_ip':10,
 				'poc':10, 
@@ -609,6 +609,7 @@
 					success: function(res) {
 						if (res.error_code == 0) {
 							that[type+"_num"] = res.data
+							
 						}
 					},
 					error: function() {}
